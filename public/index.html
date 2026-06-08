@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SynQ — Vendor Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --synq-purple: #7c5cfc;
+      --synq-dark: #0d0d14;
+      --synq-card: #13131f;
+      --synq-border: #1e1e30;
+      --synq-muted: #6b6b8a;
+    }
+    * { box-sizing: border-box; }
+    body { background: var(--synq-dark); color: #e0e0f0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+    /* Sidebar */
+    #sidebar { width: 230px; min-height: 100vh; background: var(--synq-card); border-right: 1px solid var(--synq-border);
+      position: fixed; top: 0; left: 0; z-index: 100; display: flex; flex-direction: column; }
+    .sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid var(--synq-border); }
+    .sidebar-logo span { font-size: 22px; font-weight: 700; color: var(--synq-purple); letter-spacing: -0.5px; }
+    .sidebar-logo small { display: block; font-size: 11px; color: var(--synq-muted); margin-top: 2px; }
+    .nav-link-custom { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--synq-muted);
+      text-decoration: none; font-size: 14px; transition: all 0.15s; border-left: 3px solid transparent; }
+    .nav-link-custom:hover { color: #fff; background: rgba(124,92,252,0.08); }
+    .nav-link-custom.active { color: var(--synq-purple); border-left-color: var(--synq-purple); background: rgba(124,92,252,0.1); }
+    .nav-link-custom i { font-size: 17px; }
+    .sidebar-section { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--synq-muted);
+      padding: 16px 20px 6px; }
+
+    /* Main */
+    #main { margin-left: 230px; padding: 28px 32px; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* Cards */
+    .stat-card { background: var(--synq-card); border: 1px solid var(--synq-border); border-radius: 12px; padding: 20px; }
+    .stat-card .label { font-size: 12px; color: var(--synq-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-card .value { font-size: 28px; font-weight: 700; margin-top: 6px; }
+    .stat-card .sub { font-size: 12px; color: var(--synq-muted); margin-top: 4px; }
+    .card-custom { background: var(--synq-card); border: 1px solid var(--synq-border); border-radius: 12px; }
+    .card-custom .card-header { background: transparent; border-bottom: 1px solid var(--synq-border);
+      padding: 16px 20px; font-size: 14px; font-weight: 600; color: #c0c0e0; }
+    .card-custom .card-body { padding: 20px; }
+
+    /* Table */
+    .table-custom { color: #c0c0e0; font-size: 13px; }
+    .table-custom thead th { color: var(--synq-muted); font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.06em; border-bottom: 1px solid var(--synq-border); padding: 10px 12px; font-weight: 500; }
+    .table-custom tbody td { border-color: var(--synq-border); padding: 11px 12px; vertical-align: middle; }
+    .table-custom tbody tr:hover { background: rgba(124,92,252,0.05); }
+
+    /* Badge */
+    .badge-real { background: rgba(25,135,84,0.2); color: #3dd68c; border: 1px solid rgba(25,135,84,0.3); }
+    .badge-fake { background: rgba(220,53,69,0.2); color: #f07f7f; border: 1px solid rgba(220,53,69,0.3); }
+    .badge-suspicious { background: rgba(255,193,7,0.15); color: #ffc107; border: 1px solid rgba(255,193,7,0.25); }
+    .badge-custom { font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500; }
+
+    /* Form */
+    .form-control-dark, .form-select-dark { background: #0d0d14; border: 1px solid var(--synq-border);
+      color: #e0e0f0; border-radius: 8px; font-size: 13px; padding: 9px 12px; }
+    .form-control-dark:focus, .form-select-dark:focus { background: #0d0d14; color: #e0e0f0;
+      border-color: var(--synq-purple); box-shadow: 0 0 0 3px rgba(124,92,252,0.15); outline: none; }
+    .form-control-dark::placeholder { color: var(--synq-muted); }
+    .form-label { font-size: 12px; color: var(--synq-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Btn */
+    .btn-synq { background: var(--synq-purple); color: #fff; border: none; border-radius: 8px;
+      padding: 9px 20px; font-size: 13px; font-weight: 600; transition: opacity 0.15s; }
+    .btn-synq:hover { opacity: 0.85; color: #fff; }
+    .btn-outline-synq { border: 1px solid var(--synq-purple); color: var(--synq-purple); background: transparent;
+      border-radius: 8px; padding: 6px 14px; font-size: 12px; transition: all 0.15s; }
+    .btn-outline-synq:hover { background: var(--synq-purple); color: #fff; }
+
+    /* QR modal */
+    #qrImg { max-width: 200px; margin: 0 auto; display: block; background: #fff; padding: 12px; border-radius: 10px; }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 24px; right: 24px; background: #1e1e30; color: #e0e0f0;
+      border: 1px solid var(--synq-border); border-radius: 10px; padding: 12px 20px;
+      font-size: 13px; z-index: 9999; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    #toast.show { display: block; }
+    #toast.success { border-color: #3dd68c; }
+    #toast.error   { border-color: #f07f7f; }
+
+    /* Misc */
+    .page-title { font-size: 20px; font-weight: 700; color: #e8e8ff; margin-bottom: 6px; }
+    .page-sub   { font-size: 13px; color: var(--synq-muted); margin-bottom: 24px; }
+    .vendor-id-pill { font-size: 11px; background: rgba(124,92,252,0.15); color: var(--synq-purple);
+      padding: 3px 10px; border-radius: 20px; font-family: monospace; }
+    .empty-state { text-align: center; padding: 48px 0; color: var(--synq-muted); font-size: 14px; }
+    .empty-state i { font-size: 36px; display: block; margin-bottom: 12px; }
+    .pagination .page-link { background: var(--synq-card); border-color: var(--synq-border); color: #c0c0e0; font-size: 13px; }
+    .pagination .page-item.active .page-link { background: var(--synq-purple); border-color: var(--synq-purple); color: #fff; }
+    .pagination .page-link:hover { background: rgba(124,92,252,0.15); color: var(--synq-purple); }
+    .search-box { position: relative; }
+    .search-box i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--synq-muted); font-size: 15px; }
+    .search-box input { padding-left: 34px; }
+
+    @media (max-width: 768px) {
+      #sidebar { transform: translateX(-100%); transition: transform 0.25s; }
+      #sidebar.open { transform: translateX(0); }
+      #main { margin-left: 0; padding: 16px; }
+      #mobileToggle { display: flex !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div id="sidebar">
+  <div class="sidebar-logo">
+    <span>SynQ</span>
+    <small>Vendor Admin Panel</small>
+  </div>
+  <nav class="mt-2">
+    <div class="sidebar-section">Overview</div>
+    <a href="#" class="nav-link-custom active" data-page="dashboard">
+      <i class="bi bi-grid-1x2"></i> Dashboard
+    </a>
+    <a href="#" class="nav-link-custom" data-page="vendors">
+      <i class="bi bi-people"></i> Vendors
+    </a>
+    <div class="sidebar-section">Tools</div>
+    <a href="#" class="nav-link-custom" data-page="onboard">
+      <i class="bi bi-person-plus"></i> Onboard Vendor
+    </a>
+    <a href="#" class="nav-link-custom" data-page="scans">
+      <i class="bi bi-qr-code-scan"></i> Scan Logs
+    </a>
+  </nav>
+</div>
+
+<!-- Mobile toggle -->
+<button id="mobileToggle" class="btn btn-synq" style="display:none;position:fixed;top:16px;left:16px;z-index:200;padding:6px 10px;">
+  <i class="bi bi-list fs-5"></i>
+</button>
+
+<!-- Main -->
+<div id="main">
+
+  <!-- ── DASHBOARD ── -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-title">Overview</div>
+    <div class="page-sub">Platform-wide stats across all vendors</div>
+    <div class="row g-3 mb-4" id="statsRow">
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Total Vendors</div><div class="value text-white" id="s-vendors">—</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Total Scans</div><div class="value text-white" id="s-scans">—</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Real Downloads</div><div class="value" style="color:#3dd68c" id="s-real">—</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Fake Downloads</div><div class="value" style="color:#f07f7f" id="s-fake">—</div></div></div>
+    </div>
+    <div class="card-custom">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span>Top Vendors by Downloads</span>
+        <button class="btn-outline-synq" onclick="loadDashboard()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-custom mb-0">
+          <thead><tr><th>Vendor</th><th>ID</th><th>Scans</th><th>Real</th><th>Fake</th><th>Commission</th></tr></thead>
+          <tbody id="topVendorsBody"><tr><td colspan="6" class="empty-state"><i class="bi bi-hourglass"></i>Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VENDORS ── -->
+  <div class="page" id="page-vendors">
+    <div class="d-flex align-items-center justify-content-between mb-1">
+      <div>
+        <div class="page-title">Vendors</div>
+        <div class="page-sub">All registered street vendors</div>
+      </div>
+      <button class="btn-synq" onclick="navigate('onboard')"><i class="bi bi-plus-lg me-1"></i>Add Vendor</button>
+    </div>
+    <div class="card-custom">
+      <div class="card-header d-flex gap-2 flex-wrap">
+        <div class="search-box flex-grow-1">
+          <i class="bi bi-search"></i>
+          <input type="text" class="form-control-dark w-100" id="vendorSearch" placeholder="Search by name, email or vendor ID..." oninput="filterVendors()" />
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-custom mb-0">
+          <thead><tr><th>Name</th><th>Vendor ID</th><th>Email</th><th>Scans</th><th>Real / Fake</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="vendorTableBody"><tr><td colspan="7" class="empty-state"><i class="bi bi-hourglass"></i>Loading...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="card-body border-top" style="border-color:var(--synq-border)!important">
+        <div class="d-flex align-items-center justify-content-between">
+          <small class="text-muted" id="vendorPaginationInfo"></small>
+          <nav><ul class="pagination pagination-sm mb-0" id="vendorPagination"></ul></nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ONBOARD ── -->
+  <div class="page" id="page-onboard">
+    <div class="page-title">Onboard Vendor</div>
+    <div class="page-sub">Register a new street vendor and generate their QR code</div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card-custom">
+          <div class="card-header">Vendor Details</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label">First Name *</label>
+                <input type="text" class="form-control-dark w-100" id="f-firstName" placeholder="Rahul" />
+              </div>
+              <div class="col-6">
+                <label class="form-label">Last Name *</label>
+                <input type="text" class="form-control-dark w-100" id="f-lastName" placeholder="Kumar" />
+              </div>
+              <div class="col-6">
+                <label class="form-label">Gender</label>
+                <select class="form-select-dark w-100" id="f-gender">
+                  <option value="">Select</option>
+                  <option>male</option><option>female</option><option>other</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Age</label>
+                <input type="number" class="form-control-dark w-100" id="f-age" placeholder="28" min="16" max="100" />
+              </div>
+              <div class="col-12">
+                <label class="form-label">Email *</label>
+                <input type="email" class="form-control-dark w-100" id="f-email" placeholder="vendor@email.com" />
+              </div>
+              <div class="col-12 mt-2">
+                <button class="btn-synq w-100" onclick="onboardVendor()">
+                  <i class="bi bi-person-check me-1"></i> Register Vendor
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mt-3 mt-md-0">
+        <div class="card-custom h-100" id="qrResultCard" style="display:none!important">
+          <div class="card-header">QR Code Generated</div>
+          <div class="card-body text-center">
+            <img id="qrImg" src="" alt="QR Code" />
+            <div class="mt-3">
+              <div class="vendor-id-pill d-inline-block mb-2" id="qrVendorId"></div>
+              <div class="d-flex gap-2 justify-content-center mt-3">
+                <a id="qrDownloadBtn" href="#" download class="btn-synq" style="text-decoration:none;font-size:12px;padding:7px 14px;">
+                  <i class="bi bi-download me-1"></i>Download QR
+                </a>
+                <button class="btn-outline-synq" onclick="copyText(document.getElementById('qrScanUrl').value)">
+                  <i class="bi bi-copy me-1"></i>Copy URL
+                </button>
+              </div>
+              <input type="hidden" id="qrScanUrl" />
+              <div class="mt-3 text-start" style="background:#0d0d14;border-radius:8px;padding:12px;">
+                <div style="font-size:11px;color:var(--synq-muted);margin-bottom:6px;">DASHBOARD URL</div>
+                <a id="qrDashUrl" href="#" style="font-size:12px;color:var(--synq-purple);word-break:break-all;"></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-custom h-100 d-flex align-items-center justify-content-center" id="qrPlaceholder" style="min-height:280px;">
+          <div class="empty-state">
+            <i class="bi bi-qr-code" style="color:var(--synq-purple);opacity:0.4;"></i>
+            QR code will appear here after registration
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCAN LOGS ── -->
+  <div class="page" id="page-scans">
+    <div class="page-title">Scan Logs</div>
+    <div class="page-sub">All QR scan events with fraud detection verdicts</div>
+    <div class="card-custom mb-3">
+      <div class="card-body d-flex gap-2 flex-wrap">
+        <input type="text" class="form-control-dark" id="scanVendorId" placeholder="Vendor ID (required)" style="max-width:240px;" />
+        <select class="form-select-dark" id="scanVerdict" style="max-width:160px;">
+          <option value="">All verdicts</option>
+          <option>REAL</option><option>FAKE</option><option>SUSPICIOUS</option>
+        </select>
+        <button class="btn-synq" onclick="loadScans(1)"><i class="bi bi-search me-1"></i>Search</button>
+      </div>
+    </div>
+    <div class="card-custom">
+      <div class="card-body p-0">
+        <table class="table table-custom mb-0">
+          <thead><tr><th>Time</th><th>Device</th><th>OS</th><th>Screen</th><th>Timezone</th><th>Fraud Score</th><th>Verdict</th><th>Username</th><th>Flags</th></tr></thead>
+          <tbody id="scanTableBody"><tr><td colspan="9" class="empty-state"><i class="bi bi-arrow-up-circle"></i>Enter a Vendor ID above to load scans</td></tr></tbody>
+        </table>
+      </div>
+      <div class="card-body border-top" style="border-color:var(--synq-border)!important">
+        <div class="d-flex align-items-center justify-content-between">
+          <small class="text-muted" id="scanPaginationInfo"></small>
+          <nav><ul class="pagination pagination-sm mb-0" id="scanPagination"></ul></nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- QR Modal -->
+<div class="modal fade" id="qrModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content" style="background:var(--synq-card);border:1px solid var(--synq-border);border-radius:14px;">
+      <div class="modal-header" style="border-color:var(--synq-border);">
+        <h6 class="modal-title text-white" id="qrModalTitle">QR Code</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center pb-4">
+        <img id="qrModalImg" src="" alt="QR" style="max-width:200px;background:#fff;padding:12px;border-radius:10px;display:block;margin:0 auto;" />
+        <div class="mt-3">
+          <span class="vendor-id-pill" id="qrModalId"></span>
+        </div>
+        <a id="qrModalDownload" href="#" download class="btn-synq d-inline-block mt-3" style="text-decoration:none;font-size:12px;padding:7px 16px;">
+          <i class="bi bi-download me-1"></i>Download
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const BASE = '';
+let allVendors = [], filteredVendors = [], vendorPage = 1, vendorPerPage = 15;
+
+// ── Navigation ──────────────────────────────────────────────────────────────
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link-custom').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'vendors') loadVendors();
+  document.getElementById('sidebar').classList.remove('open');
+}
+document.querySelectorAll('.nav-link-custom').forEach(a => {
+  a.addEventListener('click', e => { e.preventDefault(); navigate(a.dataset.page); });
+});
+document.getElementById('mobileToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+// ── Toast ───────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = (type === 'success' ? '✓ ' : '✗ ') + msg;
+  t.className = 'show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+}
+
+// ── Dashboard ───────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const res = await fetch(`${BASE}/api/vendors?limit=100`);
+    const data = await res.json();
+    if (!data.success) return;
+    const list = data.data || [];
+    const totScans = list.reduce((a, v) => a + (v.totalScans || 0), 0);
+    const totReal  = list.reduce((a, v) => a + (v.realDownloads || 0), 0);
+    const totFake  = list.reduce((a, v) => a + (v.fakeDownloads || 0), 0);
+    document.getElementById('s-vendors').textContent = list.length;
+    document.getElementById('s-scans').textContent = totScans;
+    document.getElementById('s-real').textContent = totReal;
+    document.getElementById('s-fake').textContent = totFake;
+
+    const sorted = [...list].sort((a, b) => (b.realDownloads || 0) - (a.realDownloads || 0)).slice(0, 8);
+    const tbody = document.getElementById('topVendorsBody');
+    if (!sorted.length) { tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="bi bi-people"></i>No vendors yet</td></tr>`; return; }
+    tbody.innerHTML = sorted.map(v => `
+      <tr>
+        <td><span style="font-weight:500;color:#e0e0f0">${v.firstName} ${v.lastName}</span></td>
+        <td><span class="vendor-id-pill">${v.vendorId}</span></td>
+        <td>${v.totalScans || 0}</td>
+        <td style="color:#3dd68c;font-weight:500">${v.realDownloads || 0}</td>
+        <td style="color:#f07f7f">${v.fakeDownloads || 0}</td>
+        <td><span style="color:var(--synq-purple);font-weight:600">${v.commission || 0} pts</span></td>
+      </tr>`).join('');
+  } catch(e) { showToast('Failed to load dashboard', 'error'); }
+}
+
+// ── Vendors ──────────────────────────────────────────────────────────────────
+async function loadVendors() {
+  try {
+    const res = await fetch(`${BASE}/api/vendors?limit=500`);
+    const data = await res.json();
+    if (!data.success) return;
+    allVendors = data.data || [];
+    filteredVendors = [...allVendors];
+    vendorPage = 1;
+    renderVendorTable();
+  } catch(e) { showToast('Failed to load vendors', 'error'); }
+}
+
+function filterVendors() {
+  const q = document.getElementById('vendorSearch').value.toLowerCase();
+  filteredVendors = allVendors.filter(v =>
+    `${v.firstName} ${v.lastName} ${v.vendorId} ${v.email || ''}`.toLowerCase().includes(q)
+  );
+  vendorPage = 1;
+  renderVendorTable();
+}
+
+function renderVendorTable() {
+  const tbody = document.getElementById('vendorTableBody');
+  const total = filteredVendors.length;
+  const start = (vendorPage - 1) * vendorPerPage;
+  const slice = filteredVendors.slice(start, start + vendorPerPage);
+  document.getElementById('vendorPaginationInfo').textContent =
+    `Showing ${start + 1}–${Math.min(start + vendorPerPage, total)} of ${total}`;
+
+  if (!slice.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="bi bi-search"></i>No vendors found</td></tr>`;
+  } else {
+    tbody.innerHTML = slice.map(v => `
+      <tr>
+        <td style="font-weight:500;color:#e0e0f0">${v.firstName} ${v.lastName}</td>
+        <td><span class="vendor-id-pill">${v.vendorId}</span></td>
+        <td style="font-size:12px;color:var(--synq-muted)">${v.email || '—'}</td>
+        <td>${v.totalScans || 0}</td>
+        <td><span style="color:#3dd68c">${v.realDownloads || 0}</span> / <span style="color:#f07f7f">${v.fakeDownloads || 0}</span></td>
+        <td style="font-size:12px;color:var(--synq-muted)">${new Date(v.createdAt).toLocaleDateString()}</td>
+        <td>
+          <button class="btn-outline-synq me-1" onclick="showQR('${v.vendorId}','${v.firstName} ${v.lastName}')">
+            <i class="bi bi-qr-code"></i>
+          </button>
+          <button class="btn-outline-synq" onclick="viewScans('${v.vendorId}')">
+            <i class="bi bi-list-ul"></i>
+          </button>
+        </td>
+      </tr>`).join('');
+  }
+
+  // Pagination
+  const pages = Math.ceil(total / vendorPerPage);
+  const pag = document.getElementById('vendorPagination');
+  pag.innerHTML = '';
+  if (pages <= 1) return;
+  for (let i = 1; i <= pages; i++) {
+    pag.innerHTML += `<li class="page-item ${i === vendorPage ? 'active' : ''}">
+      <a class="page-link" href="#" onclick="vendorPage=${i};renderVendorTable();return false">${i}</a></li>`;
+  }
+}
+
+function viewScans(vendorId) {
+  document.getElementById('scanVendorId').value = vendorId;
+  navigate('scans');
+  loadScans(1);
+}
+
+// ── QR Modal ──────────────────────────────────────────────────────────────────
+function showQR(vendorId, name) {
+  const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${BASE}/go/${vendorId}`)}`;
+  document.getElementById('qrModalImg').src = url;
+  document.getElementById('qrModalTitle').textContent = `QR — ${name}`;
+  document.getElementById('qrModalId').textContent = vendorId;
+  document.getElementById('qrModalDownload').href = url;
+  new bootstrap.Modal(document.getElementById('qrModal')).show();
+}
+
+// ── Onboard ───────────────────────────────────────────────────────────────────
+async function onboardVendor() {
+  const firstName = document.getElementById('f-firstName').value.trim();
+  const lastName  = document.getElementById('f-lastName').value.trim();
+  const gender    = document.getElementById('f-gender').value;
+  const age       = document.getElementById('f-age').value;
+  const email     = document.getElementById('f-email').value.trim();
+
+  if (!firstName || !lastName || !email) {
+    showToast('First name, last name and email are required', 'error'); return;
+  }
+
+  try {
+    const res = await fetch(`${BASE}/api/vendors/onboard`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName, lastName, gender, age: age ? +age : undefined, email })
+    });
+    const data = await res.json();
+    if (!data.success) { showToast(data.error || 'Registration failed', 'error'); return; }
+
+    showToast(`${firstName} ${lastName} registered!`);
+    const { vendorId, qrCodeUrl, scanRedirectUrl, dashboardUrl } = data.data;
+    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(scanRedirectUrl)}`;
+
+    document.getElementById('qrImg').src = qrImgUrl;
+    document.getElementById('qrVendorId').textContent = vendorId;
+    document.getElementById('qrDownloadBtn').href = qrImgUrl;
+    document.getElementById('qrScanUrl').value = scanRedirectUrl;
+    document.getElementById('qrDashUrl').textContent = dashboardUrl;
+    document.getElementById('qrDashUrl').href = dashboardUrl;
+    document.getElementById('qrPlaceholder').style.display = 'none';
+    document.getElementById('qrResultCard').style.setProperty('display', 'block', 'important');
+
+    // Clear form
+    ['f-firstName','f-lastName','f-age','f-email'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-gender').value = '';
+  } catch(e) { showToast('Network error', 'error'); }
+}
+
+// ── Scan Logs ─────────────────────────────────────────────────────────────────
+let scanTotal = 0, scanPage = 1, scanPerPage = 20;
+
+async function loadScans(page = 1) {
+  const vendorId = document.getElementById('scanVendorId').value.trim();
+  const verdict  = document.getElementById('scanVerdict').value;
+  if (!vendorId) { showToast('Enter a Vendor ID first', 'error'); return; }
+  scanPage = page;
+
+  try {
+    let url = `${BASE}/api/vendors/${vendorId}/scans?page=${page}&limit=${scanPerPage}`;
+    if (verdict) url += `&verdict=${verdict}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data.success) { showToast(data.error || 'Failed to load scans', 'error'); return; }
+
+    const { data: list, pagination } = data;
+    scanTotal = pagination.total;
+    document.getElementById('scanPaginationInfo').textContent =
+      `Showing ${(page - 1) * scanPerPage + 1}–${Math.min(page * scanPerPage, scanTotal)} of ${scanTotal}`;
+
+    const tbody = document.getElementById('scanTableBody');
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="9" class="empty-state"><i class="bi bi-inbox"></i>No scans found</td></tr>`;
+    } else {
+      tbody.innerHTML = list.map(s => {
+        const badgeClass = s.verdict === 'REAL' ? 'badge-real' : s.verdict === 'FAKE' ? 'badge-fake' : 'badge-suspicious';
+        const flags = (s.fraudFlags || []).map(f =>
+          `<span style="font-size:10px;background:rgba(255,193,7,0.1);color:#ffc107;padding:2px 6px;border-radius:4px;margin:1px;display:inline-block">${f}</span>`
+        ).join('');
+        return `<tr>
+          <td style="font-size:12px;color:var(--synq-muted);white-space:nowrap">${new Date(s.createdAt).toLocaleString()}</td>
+          <td>${s.device || '—'}</td>
+          <td>${s.os || '—'}</td>
+          <td style="font-size:12px">${s.screenSize || '—'}</td>
+          <td style="font-size:12px">${s.timezone || '—'}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="flex:1;height:5px;background:#1e1e30;border-radius:3px;max-width:60px">
+                <div style="width:${s.fraudScore}%;height:100%;background:${s.fraudScore>=60?'#f07f7f':s.fraudScore>=30?'#ffc107':'#3dd68c'};border-radius:3px"></div>
+              </div>
+              <span style="font-size:12px">${s.fraudScore}</span>
+            </div>
+          </td>
+          <td><span class="badge-custom ${badgeClass}">${s.verdict}</span></td>
+          <td style="font-size:12px;color:var(--synq-muted)">${s.username || '—'}</td>
+          <td>${flags || '<span style="color:var(--synq-muted);font-size:12px">none</span>'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Pagination
+    const pages = Math.ceil(scanTotal / scanPerPage);
+    const pag = document.getElementById('scanPagination');
+    pag.innerHTML = '';
+    if (pages > 1) {
+      for (let i = 1; i <= Math.min(pages, 8); i++) {
+        pag.innerHTML += `<li class="page-item ${i === page ? 'active' : ''}">
+          <a class="page-link" href="#" onclick="loadScans(${i});return false">${i}</a></li>`;
+      }
+    }
+  } catch(e) { showToast('Network error', 'error'); }
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+loadDashboard();
+</script>
+</body>
+</html>
