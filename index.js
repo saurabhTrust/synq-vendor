@@ -106,7 +106,7 @@ app.post("/api/vendors/onboard", async (req, res) => {
     }
 
     const vendorId = generateVendorId(firstName, lastName);
-    const BASE_URL = process.env.BASE_URL || "https://synq.trustgrid.com";
+    const BASE_URL = process.env.BASE_URL || "https://synq-vendor.trustgrid.com";
 
     const vendorDoc = {
       vendorId,
@@ -201,7 +201,7 @@ app.get("/go/:vendorId", async (req, res) => {
 
     const vendor = await vendors().findOne({ vendorId });
     if (!vendor || vendor.status !== "active") {
-      return res.redirect("https://synq.trustgrid.com");
+      return res.redirect("https://synq-vendor.trustgrid.com");
     }
 
     const ip = getClientIP(req);
@@ -240,18 +240,18 @@ app.get("/go/:vendorId", async (req, res) => {
 
     let storeUrl;
     if (platform.includes("android")) {
-      storeUrl = `https://play.google.com/store/apps/details?id=com.synq.app&referrer=vendor_${vendorId}`;
+      storeUrl = `https://play.google.com/store/search?q=synq+social&c=apps&hl=en_IN&referrer=vendor_${vendorId}`;
     } else if (platform.includes("ios") || platform.includes("iphone") || platform.includes("ipad")) {
-      storeUrl = `https://apps.apple.com/app/synq/id0000000000?pt=vendor_${vendorId}`;
+      storeUrl = `https://apps.apple.com/in/app/synq-social/id6745467461?pt=vendor_${vendorId}`;
     } else {
-      storeUrl = `https://synq.trustgrid.com/download?ref=${vendorId}`;
+      storeUrl = `https://synq-vendor.trustgrid.com/download?ref=${vendorId}`;
     }
 
     const separator = storeUrl.includes("?") ? "&" : "?";
     res.redirect(302, `${storeUrl}${separator}_scan=${insertedId.toString()}`);
   } catch (err) {
     console.error("Scan redirect error:", err);
-    res.redirect("https://synq.trustgrid.com");
+    res.redirect("https://synq-vendor.trustgrid.com");
   }
 });
 
