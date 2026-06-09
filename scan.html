@@ -7,23 +7,51 @@
   <style>
     body { margin: 0; display: flex; align-items: center; justify-content: center;
            height: 100vh; font-family: sans-serif; background: #0a0a0a; color: #fff; }
-    .spinner { width: 32px; height: 32px; border: 3px solid #333;
-               border-top-color: #7c5cfc; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .wrap { text-align: center; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #222;
+               border-top-color: #7c5cfc; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    p { margin-top: 16px; font-size: 14px; color: #555; }
   </style>
 </head>
 <body>
-  <div style="text-align:center">
+  <div class="wrap">
     <div class="spinner"></div>
-    <p style="margin-top:16px;font-size:14px;color:#666">Opening Synq...</p>
+    <p id="msg">Opening Synq...</p>
   </div>
   <script>
-    // Capture browser fingerprint, then redirect server-side
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-    const sc = `${screen.width}x${screen.height}`;
-    const vendorId = location.pathname.split('/').pop();
-    // Redirect to server route with fingerprint params
-    location.replace(`/go/${vendorId}?tz=${encodeURIComponent(tz)}&sc=${encodeURIComponent(sc)}`);
+    (async () => {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      const sc = `${screen.width}x${screen.height}`;
+      const vendorId = location.pathname.split('/').pop();
+
+      try {
+        const res = await fetch(
+          `/api/scan-init/${vendorId}?tz=${encodeURIComponent(tz)}&sc=${encodeURIComponent(sc)}`
+        );
+        const data = await res.json();
+
+        if (data.success) {
+          // Open store in same tab, vendor confirm page doesn't make sense without the app
+          // On mobile: go to store. User comes back to /v/:vendorId manually or via app deeplink.
+          if (data.storeUrl) {
+            // Store URL in session so vendor.html can pick it up
+            sessionStorage.setItem('synq_scan_id', data.scanId);
+            sessionStorage.setItem('synq_vendor_id', vendorId);
+            // Redirect to store; after install user visits /v/:vendorId
+            location.replace(data.storeUrl);
+          } else {
+            // Desktop: go straight to confirm page
+            location.replace(`/v/${vendorId}?scan=${data.scanId}`);
+          }
+        } else {
+          document.getElementById('msg').textContent = 'Vendor not found.';
+        }
+      } catch (e) {
+        // Fallback if API fails
+        location.replace(`/v/${vendorId}`);
+      }
+    })();
   </script>
 </body>
 </html>

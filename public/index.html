@@ -464,7 +464,7 @@ function viewScans(vendorId) {
 
 // ── QR Modal ──────────────────────────────────────────────────────────────────
 function showQR(vendorId, name) {
-  const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://synq-vendor.trustgrid.com/go/${vendorId}`)}`;
+  const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://synq-vendor.trustgrid.com/scan/${vendorId}`)}`;
   document.getElementById('qrModalImg').src = url;
   document.getElementById('qrModalTitle').textContent = `QR — ${name}`;
   document.getElementById('qrModalId').textContent = vendorId;

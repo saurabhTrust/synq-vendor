@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synq — Confirm Your Download</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #0a0a14;
+      color: #e0e0f0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #13131f;
+      border: 1px solid #1e1e30;
+      border-radius: 20px;
+      padding: 36px 28px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      color: #7c5cfc;
+      letter-spacing: -1px;
+      margin-bottom: 6px;
+    }
+
+    .scan-id-box {
+      display: inline-block;
+      background: #0d0d1a;
+      border: 1px solid #1e1e30;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-family: monospace;
+      color: #6b6b8a;
+      margin-bottom: 28px;
+      word-break: break-all;
+    }
+
+    /* Steps */
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 28px;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: #1e1e30;
+      z-index: 0;
+    }
+    .step.done:not(:last-child)::after { background: #7c5cfc; }
+    .step-circle {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid #1e1e30;
+      background: #0d0d1a;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #6b6b8a;
+      position: relative; z-index: 1;
+    }
+    .step.done .step-circle { background: #7c5cfc; border-color: #7c5cfc; color: #fff; }
+    .step.active .step-circle { border-color: #7c5cfc; color: #7c5cfc; }
+    .step-label { font-size: 10px; color: #6b6b8a; }
+    .step.done .step-label, .step.active .step-label { color: #c0c0e0; }
+
+    /* Store badges */
+    .store-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+    .store-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1a1a2e;
+      border: 1px solid #2a2a45;
+      border-radius: 10px;
+      padding: 10px 16px;
+      color: #e0e0f0;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .store-btn:hover { background: #22223a; border-color: #7c5cfc; }
+    .store-btn svg { flex-shrink: 0; }
+
+    /* Confirm form */
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b6b8a;
+      margin-bottom: 8px;
+    }
+    .input-group-custom {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    input[type="text"] {
+      flex: 1;
+      background: #0d0d1a;
+      border: 1px solid #1e1e30;
+      border-radius: 10px;
+      color: #e0e0f0;
+      font-size: 14px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus { border-color: #7c5cfc; }
+    input[type="text"]::placeholder { color: #3a3a5a; }
+    .btn-primary {
+      background: #7c5cfc;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .hint { font-size: 12px; color: #6b6b8a; margin-bottom: 20px; }
+
+    /* Vendor info */
+    .vendor-info {
+      background: #0d0d1a;
+      border: 1px solid #1e1e30;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .vendor-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c5cfc, #5c8cfc);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .vendor-name { font-size: 14px; font-weight: 600; color: #e0e0f0; }
+    .vendor-meta { font-size: 12px; color: #6b6b8a; margin-top: 2px; }
+
+    /* States */
+    .state { display: none; }
+    .state.active { display: block; }
+
+    /* Success */
+    .success-icon {
+      width: 64px; height: 64px;
+      background: rgba(61,214,140,0.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 28px;
+    }
+    .success-title { font-size: 20px; font-weight: 700; color: #3dd68c; margin-bottom: 8px; }
+    .success-sub { font-size: 13px; color: #6b6b8a; line-height: 1.6; }
+    .username-display {
+      font-size: 18px; font-weight: 700; color: #7c5cfc;
+      background: #0d0d1a; border-radius: 10px; padding: 10px 20px;
+      display: inline-block; margin: 14px 0;
+      font-family: monospace;
+    }
+
+    /* Error */
+    .error-msg {
+      background: rgba(240,127,127,0.1);
+      border: 1px solid rgba(240,127,127,0.3);
+      border-radius: 8px;
+      color: #f07f7f;
+      font-size: 12px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+
+    /* Loading */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block; vertical-align: middle; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .divider { border: none; border-top: 1px solid #1e1e30; margin: 20px 0; }
+
+    .already-confirmed {
+      background: rgba(124,92,252,0.1);
+      border: 1px solid rgba(124,92,252,0.3);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 13px;
+      color: #c0b0ff;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Synq</div>
+  <p style="font-size:13px;color:#6b6b8a;margin-bottom:16px;">Vendor Referral</p>
+
+  <!-- Scan ID badge -->
+  <div class="scan-id-box" id="scanIdBadge">Loading scan info...</div>
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step done" id="step1">
+      <div class="step-circle">✓</div>
+      <div class="step-label">Scanned</div>
+    </div>
+    <div class="step active" id="step2">
+      <div class="step-circle">2</div>
+      <div class="step-label">Download</div>
+    </div>
+    <div class="step" id="step3">
+      <div class="step-circle">3</div>
+      <div class="step-label">Confirm</div>
+    </div>
+  </div>
+
+  <!-- Vendor info -->
+  <div class="vendor-info" id="vendorInfo" style="display:none">
+    <div class="vendor-avatar" id="vendorAvatar">?</div>
+    <div>
+      <div class="vendor-name" id="vendorName">Loading...</div>
+      <div class="vendor-meta" id="vendorMeta">Referred by this vendor</div>
+    </div>
+  </div>
+
+  <!-- State: download -->
+  <div class="state active" id="stateDownload">
+    <p class="section-label">Step 1 — Download Synq</p>
+    <div class="store-row">
+      <a id="playLink" href="#" class="store-btn" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#3dd68c"><path d="M3 20.5v-17c0-.83 1-.9 1.4-.45l14 8.5c.4.24.4.86 0 1.1l-14 8.5C3.99 21.41 3 21.33 3 20.5z"/></svg>
+        Google Play
+      </a>
+      <a id="appleLink" href="#" class="store-btn" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#e0e0f0"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        App Store
+      </a>
+    </div>
+    <hr class="divider" />
+    <p class="section-label">Step 2 — Confirm your username</p>
+    <p class="hint">After installing Synq, come back here and enter the username you created in the app.</p>
+    <div class="input-group-custom">
+      <input type="text" id="usernameInput" placeholder="Your Synq username" autocomplete="off" autocapitalize="off" />
+      <button class="btn-primary" id="confirmBtn" onclick="confirmDownload()">Confirm</button>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <!-- State: success -->
+  <div class="state" id="stateSuccess">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Download Confirmed!</div>
+    <div class="username-display" id="confirmedUsername"></div>
+    <div class="success-sub">
+      Your download has been verified and the vendor's commission has been recorded.<br/><br/>
+      <span style="color:#4a4a6a;font-size:11px;">Scan ID: <span id="confirmedScanId" style="font-family:monospace"></span></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  let scanId = params.get('scan') || '';
+  const vendorId = location.pathname.split('/').pop();
+
+  // Show scan ID
+  document.getElementById('scanIdBadge').textContent = scanId
+    ? `Scan ID: ${scanId}`
+    : 'No scan ID — QR not scanned properly';
+
+  // Load vendor info
+  if (vendorId && vendorId !== 'download') {
+    fetch(`/api/vendors/${vendorId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const v = data.data;
+          const initials = (v.firstName[0] + v.lastName[0]).toUpperCase();
+          document.getElementById('vendorAvatar').textContent = initials;
+          document.getElementById('vendorName').textContent = `${v.firstName} ${v.lastName}`;
+          document.getElementById('vendorMeta').textContent = `Vendor ID: ${v.vendorId}`;
+          document.getElementById('vendorInfo').style.display = 'flex';
+
+          // Set store links with vendorId referrer
+          document.getElementById('playLink').href =
+            `https://play.google.com/store/search?q=synq+social&c=apps&hl=en_IN&referrer=vendor_${vendorId}`;
+          document.getElementById('appleLink').href =
+            `https://apps.apple.com/in/app/synq-social/id6745467461`;
+        }
+      })
+      .catch(() => {});
+  }
+
+  async function confirmDownload() {
+    const username = document.getElementById('usernameInput').value.trim();
+    const errEl = document.getElementById('errorMsg');
+    errEl.classList.remove('show');
+
+    if (!username || username.length < 3) {
+      errEl.textContent = 'Username must be at least 3 characters.';
+      errEl.classList.add('show');
+      return;
+    }
+    if (!scanId) {
+      errEl.textContent = 'No scan ID found. Please scan the QR code again.';
+      errEl.classList.add('show');
+      return;
+    }
+
+    const btn = document.getElementById('confirmBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Confirming...';
+
+    try {
+      const res = await fetch(`/api/scans/${scanId}/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        // Advance steps
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step2').classList.add('done');
+        document.getElementById('step2').querySelector('.step-circle').textContent = '✓';
+        document.getElementById('step3').classList.add('done');
+        document.getElementById('step3').querySelector('.step-circle').textContent = '✓';
+
+        document.getElementById('confirmedUsername').textContent = `@${data.data.username}`;
+        document.getElementById('confirmedScanId').textContent = scanId;
+        document.getElementById('stateDownload').classList.remove('active');
+        document.getElementById('stateSuccess').classList.add('active');
+      } else {
+        errEl.textContent = data.error || 'Something went wrong. Please try again.';
+        errEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Confirm';
+
+        // If already confirmed, show special message
+        if (res.status === 409) {
+          errEl.innerHTML = data.error + '<div class="already-confirmed" style="margin-top:10px">This download was already confirmed. Each scan can only be confirmed once.</div>';
+        }
+      }
+    } catch (e) {
+      errEl.textContent = 'Network error. Please check your connection.';
+      errEl.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Confirm';
+    }
+  }
+
+  // Allow Enter key
+  document.getElementById('usernameInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') confirmDownload();
+  });
+</script>
+</body>
+</html>

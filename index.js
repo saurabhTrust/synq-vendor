@@ -121,7 +121,7 @@ app.post("/api/vendors/onboard", async (req, res) => {
       updatedAt: new Date(),
       dashboardUrl: `${BASE_URL}/v/${vendorId}`,
       qrCodeUrl: `${BASE_URL}/qr/${vendorId}`,
-      scanRedirectUrl: `${BASE_URL}/go/${vendorId}`,
+      scanRedirectUrl: `${BASE_URL}/scan/${vendorId}`,
       totalScans: 0,
       realDownloads: 0,
       fakeDownloads: 0,
@@ -194,6 +194,66 @@ app.get("/api/vendors/:vendorId", async (req, res) => {
   }
 });
 
+// GET /api/scan-init/:vendorId — called by scan.html via fetch; logs scan, returns scanId + storeUrl as JSON
+app.get("/api/scan-init/:vendorId", async (req, res) => {
+  try {
+    const { vendorId } = req.params;
+
+    const vendor = await vendors().findOne({ vendorId });
+    if (!vendor || vendor.status !== "active") {
+      return res.status(404).json({ success: false, error: "Vendor not found" });
+    }
+
+    const ip = getClientIP(req);
+    const ipHash = hashIP(ip);
+    const userAgent = req.headers["user-agent"] || "";
+    const timezone = req.query.tz || "";
+    const screenSize = req.query.sc || "";
+
+    const { score, flags, verdict } = await computeFraudScore(vendorId, ipHash, userAgent, timezone);
+
+    const ua = new UAParser(userAgent);
+    const platform = ua.getOS().name?.toLowerCase() || "";
+
+    const scanLog = {
+      vendorId, ipHash, userAgent,
+      os: ua.getOS().name,
+      device: ua.getDevice().type || "desktop",
+      browser: ua.getBrowser().name,
+      screenSize, timezone,
+      fraudScore: score, fraudFlags: flags, verdict,
+      downloadConfirmed: false, username: null,
+      createdAt: new Date(),
+    };
+    const { insertedId } = await scans().insertOne(scanLog);
+
+    await vendors().updateOne(
+      { vendorId },
+      { $inc: { totalScans: 1 }, $set: { updatedAt: new Date() } }
+    );
+
+    let storeUrl;
+    if (platform.includes("android")) {
+      storeUrl = `https://play.google.com/store/search?q=synq+social&c=apps&hl=en_IN&referrer=vendor_${vendorId}`;
+    } else if (platform.includes("ios") || platform.includes("iphone") || platform.includes("ipad")) {
+      storeUrl = `https://apps.apple.com/in/app/synq-social/id6745467461`;
+    } else {
+      storeUrl = null; // desktop: no store redirect, just confirm page
+    }
+
+    res.json({
+      success: true,
+      scanId: insertedId.toString(),
+      storeUrl,
+      verdict,
+      fraudScore: score,
+    });
+  } catch (err) {
+    console.error("Scan init error:", err);
+    res.status(500).json({ success: false, error: "Internal server error" });
+  }
+});
+
 // GET /go/:vendorId — QR scan redirect + fraud logging
 app.get("/go/:vendorId", async (req, res) => {
   try {
@@ -247,8 +307,9 @@ app.get("/go/:vendorId", async (req, res) => {
       storeUrl = `https://synq-vendor.trustgrid.com/download?ref=${vendorId}`;
     }
 
+    const scanIdStr = insertedId.toString();
     const separator = storeUrl.includes("?") ? "&" : "?";
-    res.redirect(302, `${storeUrl}${separator}_scan=${insertedId.toString()}`);
+    res.redirect(302, `${storeUrl}${separator}_scan=${scanIdStr}`);
   } catch (err) {
     console.error("Scan redirect error:", err);
     res.redirect("https://synq-vendor.trustgrid.com");
@@ -396,11 +457,19 @@ app.patch("/api/vendors/:vendorId/scans/:scanId/flag", async (req, res) => {
   }
 });
 
-// GET /v/:vendorId — vendor public dashboard page (served from public/index.html SPA)
-// GET /download — non-mobile fallback page
-// Both just serve the SPA; the frontend handles routing by URL
-app.get(["/v/:vendorId", "/download"], (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+// GET /scan/:vendorId — QR lands here first; JS captures tz+screen then calls /go/:vendorId
+app.get("/scan/:vendorId", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "scan.html"));
+});
+
+// GET /v/:vendorId — vendor-facing confirmation page (enter username after download)
+app.get("/v/:vendorId", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "vendor.html"));
+});
+
+// GET /download — non-mobile fallback (also shows vendor confirmation UI)
+app.get("/download", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "vendor.html"));
 });
 
 // ─── Start ──────────────────────────────────────────────────────────────────
