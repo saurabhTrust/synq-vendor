@@ -32,23 +32,17 @@
         const data = await res.json();
 
         if (data.success) {
-          // Open store in same tab, vendor confirm page doesn't make sense without the app
-          // On mobile: go to store. User comes back to /v/:vendorId manually or via app deeplink.
+          // Always redirect to vendor confirm page with scanId
+          // Open store in a new tab so user doesn't lose the scanId
           if (data.storeUrl) {
-            // Store URL in session so vendor.html can pick it up
-            sessionStorage.setItem('synq_scan_id', data.scanId);
-            sessionStorage.setItem('synq_vendor_id', vendorId);
-            // Redirect to store; after install user visits /v/:vendorId
-            location.replace(data.storeUrl);
-          } else {
-            // Desktop: go straight to confirm page
-            location.replace(`/v/${vendorId}?scan=${data.scanId}`);
+            window.open(data.storeUrl, '_blank');
           }
+          // Go to vendor confirmation page with scanId in URL
+          location.replace(`/v/${vendorId}?scan=${encodeURIComponent(data.scanId)}`);
         } else {
           document.getElementById('msg').textContent = 'Vendor not found.';
         }
       } catch (e) {
-        // Fallback if API fails
         location.replace(`/v/${vendorId}`);
       }
     })();
